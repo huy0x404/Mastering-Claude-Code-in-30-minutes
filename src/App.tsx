@@ -32,6 +32,99 @@ interface Step {
 
 // --- Components ---
 
+const Quiz = ({ onComplete }: { onComplete: () => void }) => {
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+
+  const questions = [
+    {
+      q: "What is the primary way Claude Code accesses external private data?",
+      a: ["OAuth 2.0", "Model Context Protocol (MCP)", "Direct SSH Tunneling"],
+      correct: 1
+    },
+    {
+      q: "Which command flushes the current conversation context?",
+      a: ["/clear", "/reset", "/compact"],
+      correct: 1
+    },
+    {
+      q: "True or False: Claude Code runs exclusively in the cloud and cannot read local files.",
+      a: ["True", "False"],
+      correct: 1
+    }
+  ];
+
+  const handleAnswer = (idx: number) => {
+    if (idx === questions[currentQuestion].correct) setScore(score + 1);
+    
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      setShowResults(true);
+      onComplete();
+    }
+  };
+
+  if (showResults) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        className="text-center py-12 space-y-6"
+      >
+        <div className="w-24 h-24 bg-brand rounded-full mx-auto flex items-center justify-center text-black">
+          <CheckCircle className="w-12 h-12" />
+        </div>
+        <h4 className="text-4xl font-black">Certification Complete</h4>
+        <p className="text-white/60">Final Score: {score}/{questions.length}</p>
+        <p className="text-brand font-bold uppercase tracking-[0.2em] text-xs">You are now ready to deploy Claude Code in production.</p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <div className="space-y-12">
+      <div className="space-y-4">
+        <span className="text-[10px] font-mono text-white/30 tracking-widest uppercase">Question 0{currentQuestion + 1}</span>
+        <h4 className="text-3xl font-bold text-white">{questions[currentQuestion].q}</h4>
+      </div>
+      <div className="grid grid-cols-1 gap-4">
+        {questions[currentQuestion].a.map((ans, i) => (
+          <button
+            key={i}
+            onClick={() => handleAnswer(i)}
+            className="p-6 text-left border border-white/10 bg-white/5 hover:bg-brand hover:text-black transition-all font-bold text-sm uppercase tracking-widest"
+          >
+            {ans}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+function DatabaseIcon(props: any) {
+  return (
+    <svg 
+      {...props}
+      xmlns="http://www.w3.org/2000/svg" 
+      width="24" 
+      height="24" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    >
+      <ellipse cx="12" cy="5" rx="9" ry="3" />
+      <path d="M3 5V19A9 3 0 0 0 21 19V5" />
+      <path d="M3 12A9 3 0 0 0 21 12" />
+    </svg>
+  );
+}
+
 const TerminalMock = ({ command, output }: { command: string, output: string[] }) => {
   return (
     <div className="bg-[#050505] rounded-sm border border-white/10 font-mono text-sm overflow-hidden shadow-2xl">
@@ -219,6 +312,76 @@ export default function App() {
       )
     },
     {
+      id: 'search',
+      title: 'Search Grounding',
+      duration: '5m',
+      icon: <Layers className="w-5 h-5" />,
+      content: (
+        <div className="space-y-8">
+          <h3 className="text-[10px] uppercase tracking-[0.4em] text-brand font-black mb-6">Real-time Intelligence</h3>
+          <p className="text-white/60 mb-8 leading-relaxed">
+            Claude Code isn't limited to its training data. By integrating with Google Search, it can pull in the latest documentation, security advisories, and API changes.
+          </p>
+          
+          <div className="p-8 bg-white/5 border border-white/10 rounded-sm">
+            <div className="flex flex-col md:flex-row gap-8 items-center">
+              <div className="flex-1 space-y-4">
+                <div className="flex items-center gap-2 text-brand">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-xs font-bold uppercase tracking-widest">Always Current</span>
+                </div>
+                <p className="text-sm text-white/80">Claude automatically triggers a search if it detects a query about a library released after its cutoff or a specific vendor-specific update.</p>
+              </div>
+              <div className="w-full md:w-64 h-32 border border-white/10 flex items-center justify-center relative bg-bg-dark">
+                 <div className="absolute inset-0 bg-brand/5 animate-pulse" />
+                 <span className="text-[10px] font-mono text-white/40 uppercase">Searching official docs...</span>
+              </div>
+            </div>
+          </div>
+
+          <TerminalMock 
+            command={'claude "How do I upgrade to the latest experimental React features?"'} 
+            output={[
+              "🌐 Searching: React 'Canary' documentation 2026...",
+              "📄 Found: React v19.x Release Notes",
+              "🤖 Strategy: Update package.json to @canary and use specific use() hook...",
+              "📦 Applying changes to App.tsx..."
+            ]} 
+          />
+        </div>
+      )
+    },
+    {
+      id: 'advanced',
+      title: 'Advanced Workflows',
+      duration: '10m',
+      icon: <Zap className="w-5 h-5" />,
+      content: (
+        <div className="space-y-8">
+          <h3 className="text-[10px] uppercase tracking-[0.4em] text-brand font-black mb-6">Production Mastery</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/10 border border-white/10">
+            <div className="p-8 bg-bg-dark">
+              <h4 className="text-white font-bold mb-2">Automated PRs</h4>
+              <p className="text-sm text-white/50">Claude can stage changes, write meaningful commit messages, and even open GitHub PRs using standard CLI tools.</p>
+            </div>
+            <div className="p-8 bg-bg-dark">
+              <h4 className="text-white font-bold mb-2">Multi-File Refactor</h4>
+              <p className="text-sm text-white/50">Refactor an entire directory's state management or architecture in a single, verified pass.</p>
+            </div>
+          </div>
+
+           <div className="p-6 bg-brand/5 border border-brand/20">
+             <div className="flex items-center gap-3 mb-2">
+               <Zap className="w-4 h-4 text-brand" />
+               <span className="text-xs font-black uppercase tracking-widest text-brand">Expert Pattern</span>
+             </div>
+             <p className="text-sm text-white/80 font-mono italic">"claude --execute 'npm test && git commit -am \"Fix unit tests\"'"</p>
+           </div>
+        </div>
+      )
+    },
+    {
       id: 'lab',
       title: 'Recursive Debugging',
       duration: 'Interactive',
@@ -252,6 +415,18 @@ export default function App() {
           />
         </div>
       )
+    },
+    {
+      id: 'quiz',
+      title: 'Knowledge Certification',
+      duration: '5m',
+      icon: <CheckCircle className="w-5 h-5" />,
+      content: <Quiz onComplete={() => {
+        const id = 'quiz';
+        if (!completedSteps.includes(id)) {
+          setCompletedSteps(prev => [...prev, id]);
+        }
+      }} />
     }
   ];
 
@@ -432,27 +607,5 @@ export default function App() {
         </div>
       </footer>
     </div>
-  );
-}
-
-// Additional Icons
-function DatabaseIcon(props: any) {
-  return (
-    <svg 
-      {...props}
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    >
-      <ellipse cx="12" cy="5" rx="9" ry="3" />
-      <path d="M3 5V19A9 3 0 0 0 21 19V5" />
-      <path d="M3 12A9 3 0 0 0 21 12" />
-    </svg>
   );
 }
