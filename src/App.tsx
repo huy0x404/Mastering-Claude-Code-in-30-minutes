@@ -125,6 +125,106 @@ function DatabaseIcon(props: any) {
   );
 }
 
+const InteractiveTerminal = () => {
+  const [history, setHistory] = useState<{ type: 'cmd' | 'out', content: string | string[] }[]>([
+    { type: 'out', content: ['Welcome to Claude Code CLI v0.29.4', 'Type "claude --help" for available commands.'] }
+  ]);
+  const [input, setInput] = useState('');
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const processCommand = (cmd: string) => {
+    const trimmed = cmd.trim();
+    if (!trimmed) return;
+    
+    let response: string | string[] = '';
+    const cmdLower = trimmed.toLowerCase();
+
+    if (cmdLower === 'claude --help') {
+      response = [
+        'Usage: claude [options] [command]',
+        '',
+        'Options:',
+        '  --version  Show version number',
+        '  --help     Show help',
+        '',
+        'Commands:',
+        '  /reset     Reset conversation context',
+        '  /compact   Optimize tokens',
+        '  /mcp       Check protocol status'
+      ];
+    } else if (cmdLower === 'claude --version') {
+      response = 'claude-code v0.29.4-stable';
+    } else if (cmdLower === 'claude') {
+      response = '🤖 Claude session initialized. Ask me anything about your codebase...';
+    } else if (trimmed.startsWith('/')) {
+      response = `Action ${trimmed} executed successfully.`;
+    } else {
+      response = [
+        `🤖 Claude is thinking about: "${trimmed}"`,
+        'Analyzing codebase structure...',
+        'Generated 2 suggestions. Use "claude apply" to commit changes.'
+      ];
+    }
+
+    setHistory(prev => [...prev, { type: 'cmd', content: cmd }, { type: 'out', content: response }]);
+    setInput('');
+    setTimeout(() => {
+        scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
+  };
+
+  return (
+    <div className="bg-[#050505] rounded-sm border border-white/10 font-mono text-sm overflow-hidden shadow-2xl h-[400px] flex flex-col">
+       <div className="bg-white/5 px-4 py-2 flex items-center justify-between border-b border-white/10 shrink-0">
+          <div className="flex gap-2 items-center">
+            <Terminal className="w-3 h-3 text-brand" />
+            <span className="text-[10px] uppercase tracking-widest text-white/40">interactive-lab</span>
+          </div>
+          <div className="text-[8px] font-bold text-brand uppercase px-1.5 py-0.5 border border-brand/30 rounded-sm">
+            Terminal Live
+          </div>
+       </div>
+       
+       <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white/[0.02] scrollbar-thin scrollbar-thumb-white/10">
+          {history.map((entry, i) => (
+            <div key={i} className="space-y-2">
+              {entry.type === 'cmd' ? (
+                <div className="flex gap-3">
+                  <span className="text-brand font-bold">$</span>
+                  <span className="text-white font-medium">{entry.content}</span>
+                </div>
+              ) : (
+                <div className="ml-6 space-y-1">
+                  {Array.isArray(entry.content) ? (
+                    entry.content.map((line, j) => (
+                      <div key={j} className="text-white/60 leading-relaxed">{line}</div>
+                    ))
+                  ) : (
+                    <div className="text-white/60 leading-relaxed">{entry.content}</div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+          <div ref={scrollRef} />
+       </div>
+
+       <div className="p-4 border-t border-white/10 bg-white/[0.03] flex gap-3 shrink-0">
+          <span className="text-brand font-bold">$</span>
+          <input 
+            type="text" 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && processCommand(input)}
+            placeholder="Type a command..."
+            className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-white/20"
+            autoFocus
+          />
+       </div>
+    </div>
+  );
+};
+
 const TerminalMock = ({ command, output }: { command: string, output: string[] }) => {
   return (
     <div className="bg-[#050505] rounded-sm border border-white/10 font-mono text-sm overflow-hidden shadow-2xl">
@@ -186,7 +286,7 @@ export default function App() {
           <div className="max-w-2xl">
             <h3 className="text-[10px] uppercase tracking-[0.4em] text-brand font-black mb-6">The Evolution</h3>
             <p className="text-xl font-light text-white/80 leading-relaxed mb-8 border-l-2 border-brand/30 pl-8">
-              Claude Code is the high-performance terminal interface for Anthropic\'s AI. It operates natively in your shell, bridging the gap between reasoning and execution.
+              Claude Code is the high-performance terminal interface for Anthropic's AI. It operates natively in your shell, bridging the gap between reasoning and execution.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/10 border border-white/10 rounded-sm overflow-hidden">
               <div className="p-8 bg-bg-dark hover:bg-white/[0.02] transition-colors">
@@ -391,28 +491,22 @@ export default function App() {
           <h3 className="text-[10px] uppercase tracking-[0.4em] text-brand font-black mb-6">Tactical Lab</h3>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-white/10 border border-white/10 rounded-sm overflow-hidden">
-            <button className="p-8 bg-bg-dark text-left hover:bg-brand/5 group transition-colors">
+            <div className="p-8 bg-bg-dark text-left group">
               <span className="block text-brand text-[10px] font-bold uppercase tracking-widest mb-4">Case 01</span>
               <span className="text-xl font-bold text-white block mb-2">Build Failure</span>
               <span className="text-sm text-white/40">Claude traces V8 errors and auto-patches tsconfig mismatch.</span>
-            </button>
-            <button className="p-8 bg-bg-dark text-left hover:bg-brand/5 group transition-colors">
+            </div>
+            <div className="p-8 bg-bg-dark text-left group">
               <span className="block text-white/30 text-[10px] font-bold uppercase tracking-widest mb-4">Case 02</span>
               <span className="text-xl font-bold text-white block mb-2">Schema Migration</span>
               <span className="text-sm text-white/40">Automated SQL generation via deep directory analysis.</span>
-            </button>
+            </div>
           </div>
 
-          <TerminalMock 
-            command={'claude "Debug why the test suite is hanging"'} 
-            output={[
-              "🔍 Investigating process list...",
-              "📍 Found orphaned database connection in teardown()",
-              "📦 Patching /tests/setup.ts...",
-              "✓ Verification: Tests now exit in 1.2s",
-              "🤖 Fixed. Recommended to add await db.close() in line 89."
-            ]} 
-          />
+          <div className="space-y-4">
+            <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Live Simulation</p>
+            <InteractiveTerminal />
+          </div>
         </div>
       )
     },
